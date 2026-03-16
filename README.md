@@ -2,6 +2,7 @@
 
 this website contains a list of 600 commonly asked flashcard questions in electrical and computer engineering interviews.
 I built this app to help me keep a centralized place for interview preparation, since I couldn't find much online
+As I answer questions, I'll add answers to the back of each flashcard
 
 **Live at:** `http://localhost:8080` (run `./start.sh` to launch)
 
