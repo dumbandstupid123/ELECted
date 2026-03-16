@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ece interview flashcards</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;font-family:monospace;min-height:100vh;padding:48px 24px;color:#111}
+
+/* HOME */
+#view-study{display:none}
+#home-header{display:flex;align-items:baseline;gap:20px;max-width:920px;margin:0 auto 36px;white-space:nowrap}
+#home-header h1{font-weight:400;letter-spacing:.1em;font-size:2rem}
+#g-total{margin-left:auto;font-size:.75rem;color:#aaa}
+
+#topic-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  max-width:920px;margin:0 auto;
+  border-left:1px solid #111;border-top:1px solid #111;
+}
+.topic-card{border-right:1px solid #111;border-bottom:1px solid #111;padding:20px;cursor:pointer;transition:background .1s}
+.topic-card:hover{background:#f5f5f5}
+.tc-name{font-size:.85rem;letter-spacing:.05em;margin-bottom:6px}
+.tc-secs{font-size:.7rem;color:#888;line-height:1.7;margin-bottom:14px}
+.tc-count{font-size:.7rem;color:#aaa}
+
+/* STUDY */
+#view-study{flex-direction:column;align-items:center;padding:48px 24px;min-height:100vh}
+#study-nav{display:flex;align-items:center;gap:16px;width:100%;max-width:680px;margin-bottom:28px}
+#back-btn{background:none;border:none;font-family:monospace;font-size:.8rem;cursor:pointer;color:#888;letter-spacing:.05em;padding:0}
+#back-btn:hover{color:#111}
+#study-topic-label{font-size:.85rem;letter-spacing:.05em}
+#study-counter{margin-left:auto;font-size:.7rem;color:#aaa}
+
+#sections-bar{display:flex;border:1px solid #111;width:100%;max-width:680px;margin-bottom:28px;overflow-x:auto}
+#sections-bar::-webkit-scrollbar{height:0}
+.sec-chip{padding:8px 14px;font-family:monospace;font-size:.7rem;cursor:pointer;background:#fff;border:none;border-right:1px solid #111;color:#888;white-space:nowrap;letter-spacing:.03em}
+.sec-chip:last-child{border-right:none}
+.sec-chip.active{background:#111;color:#fff}
+.sec-chip:hover:not(.active){background:#f5f5f5}
+
+#prog-bar{width:100%;max-width:680px;height:1px;background:#eee;margin-bottom:28px}
+#prog-fill{height:100%;background:#111;transition:width .3s}
+
+#card{border:1px solid #111;padding:40px;width:100%;max-width:680px;min-height:160px;display:flex;flex-direction:column;gap:10px;cursor:pointer}
+#card:hover{background:#fafafa}
+#card-sec{font-size:.65rem;letter-spacing:.1em;color:#bbb;text-transform:uppercase}
+#card-q{font-size:1rem;line-height:1.75;color:#111}
+
+#nav-btns{display:flex;width:100%;max-width:680px;border:1px solid #111;border-top:none}
+.nav-btn{flex:1;padding:12px;font-family:monospace;font-size:.75rem;cursor:pointer;background:#fff;border:none;letter-spacing:.05em;color:#888}
+.nav-btn:first-child{border-right:1px solid #111}
+.nav-btn:hover{background:#111;color:#fff}
+
+#kbd-hint{margin-top:10px;font-size:.65rem;color:#ddd;letter-spacing:.05em;width:100%;max-width:680px;text-align:center}
+
+#empty-state{display:none;text-align:center;padding:60px;border:1px solid #111;width:100%;max-width:680px}
+#empty-state p{font-size:.85rem;color:#666;margin-bottom:20px;letter-spacing:.03em}
+.action-btn{background:#111;color:#fff;border:none;padding:10px 24px;font-family:monospace;font-size:.8rem;cursor:pointer;letter-spacing:.05em}
+.action-btn:hover{background:#333}
+#tagline{font-size:.75rem;color:#aaa;max-width:920px;margin:0 auto 28px;letter-spacing:.03em}
+footer{font-size:.7rem;color:#ccc;text-align:center;padding:48px 0 0;max-width:920px;margin:0 auto}
+footer a{color:#ccc}
+</style>
+</head>
+<body>
+
+<div id="view-home">
+  <div id="home-header">
+    <h1>ECE interview flashcards</h1>
+    <span id="g-total"></span>
+  </div>
+  <p id="tagline"> Click a topic to start practicing common interview concepts asked across circuits, analog, power, embedded systems, PCB design, VLSI, and more. answers coming soon</p>
+  <div id="topic-grid"></div>
+  <footer>built by <a href="mailto:sr185@rice.edu">sr185@rice.edu</a></footer>
+</div>
+
+<div id="view-study">
+  <div id="study-nav">
+    <button id="back-btn" onclick="showHome()">← back</button>
+    <span id="study-topic-label"></span>
+    <span id="study-counter"></span>
+  </div>
+  <div id="sections-bar"></div>
+  <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
+  <div id="card" onclick="next()">
+    <div id="card-sec"></div>
+    <div id="card-q"></div>
+  </div>
+  <div id="nav-btns">
+    <button class="nav-btn" onclick="prev()">← prev</button>
+    <button class="nav-btn" onclick="next()">next →</button>
+  </div>
+  <div id="kbd-hint">← → or click card to navigate</div>
+  <div id="empty-state">
+    <p>done.</p>
+    <button class="action-btn" onclick="startSection('__all__')">restart</button>
+  </div>
+</div>
+
+<script>
+const TOPICS = [
+{
+  id:'circuit-fundamentals',name:'Circuit Fundamentals',icon:'⚡',color:'#F59E0B',
+  desc:'Ohm\'s Law, KVL/KCL, Thevenin/Norton, RLC, power analysis',
+  sections:[
+    {name:'Basic Laws & Analysis',q:[
+      'What is Ohm\'s Law? State it mathematically and explain each term.',
+      'What is Kirchhoff\'s Current Law (KCL)? State it formally.',
+      'What is Kirchhoff\'s Voltage Law (KVL)? State it formally.',
+      'What are the three equivalent forms of the power equation? When would you use each?',
+      'Why is resistive power loss characterized as I²R rather than V²/R in transmission line contexts?',
+      'Derive the voltage divider equation for two series resistors.',
+      'Derive the current divider equation for two parallel resistors.',
+      'How do you find equivalent resistance for N resistors in series? In parallel?',
+      'What is impedance? How does it differ from resistance?',
+      'What is reactance? What is the sign of capacitive vs. inductive reactance?',
+      'Write the impedance of a capacitor and an inductor in phasor notation.',
+      'What is the superposition theorem? When can it be applied?',
+      'What is mesh analysis? When is it preferred over nodal analysis?',
+      'What is nodal analysis? What is a reference node?',
+    ]},
+    {name:'Thevenin & Norton',q:[
+      'What is a Thevenin equivalent circuit? What are its two components?',
+      'How do you find the Thevenin voltage V_th?',
+      'How do you find the Thevenin resistance R_th?',
+      'How do you find R_th when the circuit contains dependent sources?',
+      'What is a Norton equivalent circuit?',
+      'How do you convert between Thevenin and Norton equivalents?',
+      'State the maximum power transfer theorem. What load resistance maximizes power?',
+    ]},
+    {name:'RLC Circuits',q:[
+      'What is the time constant of an RC circuit? What does it physically mean?',
+      'How many time constants does an RC circuit take to reach 99% of its final value?',
+      'What is the time constant of an RL circuit?',
+      'How does a capacitor behave at t=0+ after a switch closes? At t→∞?',
+      'How does an inductor behave at t=0+ after a switch closes? At t→∞?',
+      'Derive the resonant frequency of a series RLC circuit.',
+      'What is the Q factor? How does it relate to bandwidth?',
+      'What is the difference between series resonance and parallel resonance?',
+      'What is an overdamped vs. underdamped vs. critically damped RLC response?',
+    ]},
+  ]
+},
+{
+  id:'passive-components',name:'Passive Components',icon:'🔌',color:'#10B981',
+  desc:'Resistors, capacitors, inductors and their real-world parasitics',
+  sections:[
+    {name:'Resistors',q:[
+      'What physical quantities determine resistance? Give the formula.',
+      'What is resistivity? Typical values for copper, silicon, and an insulator?',
+      'Draw a realistic circuit model for a resistor including all parasitics.',
+      'How does a resistor\'s parasitic inductance affect its impedance at high frequency?',
+      'What are common resistor packages (0402, 0603, 0805) and why does size matter?',
+      'What are pull-up and pull-down resistors? How do you size them for a given bus?',
+      'What is a thermistor? Explain NTC vs. PTC behavior.',
+      'What is TCR (Temperature Coefficient of Resistance)? Why does it matter in precision circuits?',
+      'What is a current sense resistor? What specs matter when choosing one?',
+      'What are common resistor failure modes?',
+    ]},
+    {name:'Capacitors',q:[
+      'What is capacitance? Derive the formula for a parallel plate capacitor.',
+      'What is a dielectric? What is relative permittivity (dielectric constant)?',
+      'Write the impedance of an ideal capacitor. Sketch |Z| vs. log(frequency).',
+      'Write the differential equation relating current and voltage for a capacitor.',
+      'What is the continuity condition for capacitor voltage?',
+      'How does a capacitor behave at DC? At very high frequencies?',
+      'Draw a realistic model of a capacitor. Define ESR and ESL and their origins.',
+      'What is the self-resonant frequency (SRF) of a capacitor? What causes it?',
+      'What is ESR? How does it affect capacitor performance at high frequency?',
+      'What is the difference between a bypass capacitor and a bulk decoupling capacitor?',
+      'What is an AC coupling capacitor? How do you choose its value?',
+      'What is voltage derating on ceramic capacitors? What causes it physically?',
+      'Compare C0G, X7R, X5R, and Y5V dielectrics in terms of stability and capacitance.',
+      'What are common capacitor failure modes?',
+      'When would you choose electrolytic vs. ceramic vs. film capacitors?',
+    ]},
+    {name:'Inductors',q:[
+      'What is inductance? Give the formula and its units.',
+      'Write the impedance of an ideal inductor. Sketch |Z| vs. log(frequency).',
+      'Write the differential equation relating voltage and current for an inductor.',
+      'What is the continuity condition for inductor current?',
+      'How does an inductor behave at DC? At very high frequencies?',
+      'What happens when an inductor saturates? Why is it bad in a power converter?',
+      'Draw a realistic circuit model for an inductor. Label all parasitics.',
+      'What is DCR (DC Resistance)? What causes it?',
+      'What is ACR? How and why does it increase with frequency?',
+      'What is the skin effect? How does it affect inductor losses?',
+      'What are core losses? What causes them?',
+      'What do ferrite cores do? What are common core materials?',
+      'What is the saturation current (Isat) spec on an inductor? How do you use it when selecting an inductor?',
+      'What are common inductor failure modes?',
+      'What is a transformer? How does it work?',
+      'What is the ideal transformer equation (turns ratio, V and I relationships)?',
+      'What are non-ideal transformer properties (leakage inductance, winding resistance, core losses)?',
+      'Draw an LC oscillator. How does it oscillate?',
+      'What is a full-wave rectifier? Draw it and describe its operation.',
+      'What is a half-wave rectifier? How does output ripple compare to a full-wave rectifier?',
+    ]},
+  ]
+},
+{
+  id:'semiconductor-devices',name:'Semiconductor Devices',icon:'💡',color:'#8B5CF6',
+  desc:'Device physics, diodes, BJTs, MOSFETs',
+  sections:[
+    {name:'Device Physics',q:[
+      'What is the difference between a conductor, insulator, and semiconductor?',
+      'What is doping? What are donor and acceptor atoms?',
+      'What elements create N-type silicon? P-type silicon?',
+      'What are the majority and minority carriers in N-type and P-type material?',
+      'Which carrier is more mobile in silicon: electrons or holes? Why?',
+      'What is a depletion region? How does it form at a P-N junction?',
+      'What is the built-in potential of a P-N junction?',
+      'What is charge mobility? How does temperature affect it?',
+      'What is the photoelectric effect?',
+    ]},
+    {name:'Diodes',q:[
+      'How does a diode work? Explain current flow in forward and reverse bias.',
+      'Draw the IV curve of a diode. Label all operating regions.',
+      'What is the forward voltage of a silicon diode? Of a Schottky diode? Why different?',
+      'What is the Shockley diode equation?',
+      'What is the Zener effect vs. avalanche breakdown?',
+      'What is a Zener diode used for? How does it regulate voltage?',
+      'What is a Schottky diode? What are its advantages for power rectification?',
+      'How do you build an ideal diode using a MOSFET?',
+      'What is a varactor (varicap) diode? How is it used?',
+      'What is a photodiode? How does it work?',
+      'What are common diode failure modes?',
+    ]},
+    {name:'BJTs',q:[
+      'Draw the symbol for an NPN and PNP BJT. Label all terminals.',
+      'What are the three operating regions of a BJT?',
+      'What is current gain β (hFE)? What are typical values?',
+      'In the active region, what is the relationship between Ic, Ib, and β?',
+      'When would you use a PNP instead of NPN?',
+      'How do you use a BJT as a switch? What region does it operate in?',
+      'How do you use a BJT as an amplifier?',
+      'Draw the output IV curves (Ic vs. Vce) for a BJT.',
+      'What is the Early effect?',
+      'What is the main drawback of BJTs vs. MOSFETs for power switching?',
+      'What is a Darlington pair? When is it used?',
+    ]},
+    {name:'MOSFETs',q:[
+      'Draw the symbol for an N-channel enhancement MOSFET. Label all four terminals.',
+      'Why are body and source often tied together in discrete MOSFETs?',
+      'What is the difference between enhancement-mode and depletion-mode MOSFETs?',
+      'What is the difference between N-channel and P-channel MOSFETs?',
+      'What are the three operating regions: cutoff, triode (linear), and saturation?',
+      'What is threshold voltage Vth? How does temperature affect it?',
+      'Given Vgs and Vth, how do you determine which region the MOSFET is in?',
+      'Draw the output IV curves (Id vs. Vds) for an NFET.',
+      'What is the body diode? Where does it come from? Can you exploit it?',
+      'Why is the gate oxide sensitive to overvoltage?',
+      'What is Rds(on)? How does it relate to W/L ratio?',
+      'Why are MOSFETs preferred over BJTs for switching?',
+      'What is the W/L ratio? How does increasing W affect Id, Rds(on), and Cgs?',
+      'What are Cgs, Cgd, and Cds? Why do they matter in switching?',
+      'What is the Miller effect in a MOSFET?',
+      'What is total gate charge Qg? How does it affect switching loss?',
+    ]},
+  ]
+},
+{
+  id:'analog-circuits',name:'Analog Circuits',icon:'📡',color:'#3B82F6',
+  desc:'Amplifiers, op-amps, filters, PLL, CMOS logic',
+  sections:[
+    {name:'Amplifiers',q:[
+      'What is voltage gain? Express in linear form and in dB.',
+      'What is input impedance? Why should it be high for a voltage amplifier?',
+      'What is output impedance? Why should it be low?',
+      'What is the gain-bandwidth product (GBW)?',
+      'What is a common-source amplifier? Derive its voltage gain.',
+      'What is a source follower (common-drain)? What is its gain and why is it useful?',
+      'What is a common-gate amplifier? What are its characteristics?',
+      'What is a differential amplifier? What is CMRR?',
+      'What is PSRR (Power Supply Rejection Ratio)?',
+      'What is slew rate? What limits it in an op-amp?',
+      'What is the difference between class A, B, AB, and D amplifiers?',
+    ]},
+    {name:'Op-Amps',q:[
+      'What are the ideal op-amp assumptions?',
+      'Explain the virtual short / virtual ground concept.',
+      'Design an inverting amplifier. Derive the gain formula.',
+      'Design a non-inverting amplifier. Derive the gain formula.',
+      'Design a voltage follower. Why is it useful?',
+      'Design a summing amplifier. Derive the output equation.',
+      'Design a difference amplifier. What is its output equation?',
+      'Design an integrator using an op-amp.',
+      'Design a differentiator using an op-amp.',
+      'What is an instrumentation amplifier? When is it used?',
+      'What is input offset voltage? How does it affect DC accuracy?',
+      'What is input bias current?',
+      'What causes op-amp oscillation when driving a capacitive load? How do you fix it?',
+      'What is a comparator? How does it differ from an op-amp?',
+      'What is hysteresis in a comparator (Schmitt trigger)? Why is it useful?',
+    ]},
+    {name:'Filters',q:[
+      'What is a low-pass filter? Draw its ideal Bode magnitude plot.',
+      'What is a high-pass, band-pass, and band-stop (notch) filter?',
+      'What is the -3dB cutoff frequency?',
+      'Design a first-order RC low-pass filter. What is its cutoff frequency?',
+      'What is the roll-off rate of a 1st-order filter? A 2nd-order filter?',
+      'What is a Bode plot?',
+      'What is a Butterworth filter? What makes it useful?',
+      'What is a Chebyshev filter? What is the tradeoff vs. Butterworth?',
+      'What is a Sallen-Key topology?',
+      'What is an anti-aliasing filter and where is it used?',
+      'What is the Shannon-Nyquist sampling theorem?',
+      'How does RFID technology work at a circuit level?',
+    ]},
+    {name:'PLL',q:[
+      'What is a PLL (Phase-Locked Loop)?',
+      'What are the main building blocks of a PLL?',
+      'What is a VCO (Voltage-Controlled Oscillator)?',
+      'What is a phase-frequency detector (PFD)? What is a charge pump?',
+      'What is the loop filter in a PLL? What does it set?',
+      'How does a PLL multiply frequency using a divide-by-N counter?',
+      'What is lock range vs. capture range?',
+      'What is jitter? What is phase noise?',
+    ]},
+    {name:'CMOS',q:[
+      'Draw a CMOS inverter. How does it work?',
+      'Why does CMOS use both NMOS and PMOS?',
+      'What is static power in CMOS? What causes dynamic power?',
+      'Write the dynamic power equation for CMOS (P = αCV²f).',
+      'What is shoot-through (short-circuit) current in CMOS?',
+      'Draw a CMOS NAND gate.',
+      'Why must PMOS transistors be sized wider than NMOS in CMOS gates?',
+    ]},
+  ]
+},
+{
+  id:'power-electronics',name:'Power Electronics',icon:'⚡',color:'#EF4444',
+  desc:'Buck/boost converters, LDOs, charge pumps, stability',
+  sections:[
+    {name:'General',q:[
+      'What is the difference between a linear regulator and a switching regulator?',
+      'What are the advantages and disadvantages of switching vs. linear regulators?',
+      'What is efficiency? How do you calculate it for a power supply?',
+      'What is load regulation? Line regulation?',
+      'What is a power supply\'s transient response? What causes poor transient response?',
+    ]},
+    {name:'Buck Converters',q:[
+      'How does a buck converter work? Describe the two switching phases.',
+      'Derive the steady-state output voltage equation: Vout = D × Vin.',
+      'What is duty cycle D? How is it controlled?',
+      'What is CCM (Continuous Conduction Mode) vs. DCM?',
+      'What is the CCM/DCM boundary condition?',
+      'Derive the inductor current ripple ΔiL in a buck converter.',
+      'How do you calculate output voltage ripple ΔVout?',
+      'How do you size the inductor in a buck converter?',
+      'How do you size the output capacitor in a buck converter?',
+      'What are the main loss mechanisms in a buck converter?',
+      'What is switching loss? How does it scale with frequency?',
+      'What is synchronous rectification? Why does it improve efficiency?',
+      'What is PFM (Pulse Frequency Modulation)? When is it preferred over PWM?',
+      'What is a multiphase buck converter? What are the advantages?',
+      'How does the feedback loop of a buck converter work?',
+      'What is phase margin? Why target 45–60°?',
+      'What is current-mode control vs. voltage-mode control?',
+      'What is a buck-boost converter?',
+    ]},
+    {name:'Boost Converters',q:[
+      'How does a boost converter work? Describe the two switching phases.',
+      'Derive the output voltage equation: Vout = Vin / (1 − D).',
+      'What is the right-half-plane (RHP) zero in a boost? Why is it a control challenge?',
+      'What are common boost converter failure modes?',
+    ]},
+    {name:'LDOs',q:[
+      'What is an LDO? How does it regulate output voltage?',
+      'What is dropout voltage? What determines it?',
+      'What is the power dissipation formula for an LDO?',
+      'What is PSRR of an LDO? How does it vary with frequency?',
+      'What is quiescent current (Iq)? Why does it matter in battery systems?',
+      'How does output capacitance affect LDO stability?',
+      'What is a PMOS LDO vs. NMOS LDO? Tradeoffs?',
+      'When would you choose an LDO over a switching regulator?',
+    ]},
+    {name:'Charge Pumps',q:[
+      'What is a charge pump? Describe the principle of operation.',
+      'How does a voltage doubler charge pump work?',
+      'What determines output impedance (and regulation) of a charge pump?',
+      'What are the advantages and disadvantages vs. inductor-based converters?',
+    ]},
+  ]
+},
+{
+  id:'batteries',name:'Batteries & Power Management',icon:'🔋',color:'#059669',
+  desc:'LiPo chemistry, BMS, charging, state of charge',
+  sections:[
+    {name:'LiPo Basics',q:[
+      'What is the nominal voltage of a LiPo cell?',
+      'What are the safe minimum and maximum voltages for a LiPo cell?',
+      'Sketch a typical LiPo charge/discharge voltage curve.',
+      'What is C-rate? If a cell is 2000 mAh, what current is 1C? 2C?',
+      'What is internal resistance of a battery? How does it affect performance?',
+      'How does temperature affect LiPo performance and safety?',
+    ]},
+    {name:'Charging & BMS',q:[
+      'What is CC/CV charging? Describe the two phases.',
+      'What is the typical charging termination condition for a LiPo?',
+      'What is a BMS (Battery Management System)? What functions does it perform?',
+      'What is cell balancing? What are passive vs. active balancing methods?',
+      'Why is over-discharge dangerous for a LiPo?',
+      'Why is overcharge dangerous? What can happen?',
+      'What is thermal runaway? How is it triggered?',
+      'What protections are typically in a BMS?',
+    ]},
+    {name:'State of Charge',q:[
+      'What is State of Charge (SoC)?',
+      'What is coulomb counting? What are its advantages and drawbacks?',
+      'What is the OCV (Open Circuit Voltage) method for SoC estimation?',
+      'What is the difference between SoC and State of Health (SoH)?',
+      'What is a fuel gauge IC? What algorithms do modern fuel gauges use?',
+    ]},
+  ]
+},
+{
+  id:'motors',name:'Motors & Inductive Loads',icon:'⚙️',color:'#F97316',
+  desc:'Brushed DC, BLDC, stepper motors, H-bridge, ESC',
+  sections:[
+    {name:'Brushed DC Motors',q:[
+      'How does a brushed DC motor work?',
+      'What is back-EMF? How does it affect motor behavior at different speeds?',
+      'What is the motor torque-speed curve?',
+      'What is stall current? Why is it a concern?',
+      'What is an H-bridge? Draw it. How does it control motor direction?',
+      'How do you control DC motor speed using PWM?',
+      'What are the disadvantages of brushes in a brushed motor?',
+      'What is inductive kickback when a motor is disconnected? How do you protect against it?',
+    ]},
+    {name:'BLDC Motors',q:[
+      'How does a BLDC motor differ from a brushed DC motor?',
+      'What is an ESC (Electronic Speed Controller)?',
+      'What is three-phase commutation in a BLDC motor?',
+      'What is trapezoidal vs. sinusoidal commutation?',
+      'What is back-EMF sensing for sensorless BLDC control?',
+      'What is a Hall effect sensor? How is it used for BLDC commutation?',
+      'What are the advantages of BLDC over brushed DC motors?',
+    ]},
+    {name:'Stepper & Servo',q:[
+      'How does a stepper motor work?',
+      'What is full-step vs. half-step vs. microstepping?',
+      'What is holding torque vs. running torque in a stepper?',
+      'What is resonance in stepper motors? How do you mitigate it?',
+      'How does a servo motor differ from a stepper?',
+      'What PWM signal is used to control a hobby servo?',
+    ]},
+    {name:'Drives & Protection',q:[
+      'What is the shoot-through condition in an H-bridge? How do you prevent it?',
+      'What is dead time in a gate driver?',
+      'How do you implement regenerative braking with an H-bridge?',
+      'What is an IGBT? When is it preferred over a MOSFET for motor drives?',
+      'Where do you place a current sense resistor in an H-bridge? Why?',
+      'What is a PID controller? Explain the role of the P, I, and D terms.',
+      'How do you tune a PID controller?',
+    ]},
+  ]
+},
+{
+  id:'current-sensing',name:'Current Sensing',icon:'🔬',color:'#14B8A6',
+  desc:'Sense resistors, CSAs, protection circuits',
+  sections:[
+    {name:'Sense Resistors',q:[
+      'How does a sense resistor measure current?',
+      'What are the key specs when choosing a sense resistor (value, power, TCR)?',
+      'Why should sense resistance be small? What is the accuracy tradeoff?',
+      'What is a 4-wire (Kelvin) connection? Why is it used for low-value sense resistors?',
+      'How should a sense resistor be laid out on a PCB for accurate measurements?',
+    ]},
+    {name:'Current Sense Amplifiers',q:[
+      'What is a current sense amplifier (CSA)?',
+      'What is a high-side CSA? What is the challenge of high-side sensing?',
+      'What is a low-side CSA? What are its advantages and limitations?',
+      'What is common-mode voltage range of a CSA? Why does it matter?',
+      'What is a Hall effect current sensor? How does it differ from resistive sensing?',
+      'What is a current transformer? When is it appropriate?',
+    ]},
+    {name:'Protection',q:[
+      'What is overcurrent protection (OCP)? How is it commonly implemented?',
+      'What is overvoltage protection (OVP)?',
+      'What is undervoltage lockout (UVLO)?',
+      'What is a fuse? What is a PTC (polyfuse)? When would you use each?',
+      'What is a TVS diode? How does it protect against voltage transients?',
+    ]},
+  ]
+},
+{
+  id:'pcb-design',name:'PCB Design',icon:'🖨️',color:'#6366F1',
+  desc:'Stackup, layout, routing, SI, PI, EMI, DFX',
+  sections:[
+    {name:'Layers & Stackup',q:[
+      'What are the layers of a PCB? What is a typical 4-layer stackup?',
+      'Why is it important to have a ground plane adjacent to signal layers?',
+      'What is controlled impedance? How is it achieved on a PCB?',
+      'What is copper weight (oz/ft²)? How does it affect current capacity?',
+      'What is a blind via? A buried via? Via-in-pad?',
+      'What is an ENIG finish vs. HASL? When does the finish choice matter?',
+    ]},
+    {name:'Layout & Routing',q:[
+      'What is the PCB design flow from schematic to fabrication?',
+      'What is the 3W rule for trace spacing?',
+      'What is a return current path? Why must it be kept short?',
+      'Why should you never route signals across a gap or split in a ground plane?',
+      'What is length matching? When is it required?',
+      'What are the routing rules for differential pairs?',
+      'What is a thermal relief? When is it used?',
+      'How should decoupling capacitors be placed and their vias routed?',
+      'How should you route a current sense resistor (Kelvin connections)?',
+    ]},
+    {name:'Signal Integrity',q:[
+      'When does a PCB trace need to be treated as a transmission line?',
+      'What is characteristic impedance? Typical values for common structures?',
+      'What causes reflections on a transmission line?',
+      'What is the reflection coefficient?',
+      'Describe series, parallel, Thevenin, and AC termination.',
+      'What is crosstalk? What is NEXT vs. FEXT?',
+      'What is an eye diagram? What does a degraded eye indicate?',
+    ]},
+    {name:'Power Integrity',q:[
+      'What is PDN (Power Distribution Network) impedance?',
+      'What is target impedance? How is it calculated?',
+      'Why do you use multiple decoupling capacitors of different values?',
+      'What is simultaneous switching noise (SSN/SSO)?',
+      'What is PCB inductance? How does it affect decoupling effectiveness?',
+    ]},
+    {name:'EMI & EMC',q:[
+      'What is EMI? What is EMC?',
+      'What is the difference between conducted and radiated EMI?',
+      'What is common-mode vs. differential-mode noise?',
+      'What is a ferrite bead? How does it filter high-frequency noise?',
+      'What is an EMI shield? When is it used?',
+      'How does PCB layout affect radiated emissions?',
+    ]},
+    {name:'DFX & Testing',q:[
+      'What is DFM (Design for Manufacturing)? Give three DFM guidelines.',
+      'What is DFT (Design for Test) at the PCB level?',
+      'What are test points? Best practices for their placement?',
+      'What is ICT (In-Circuit Testing)?',
+      'What is FCT (Functional Testing)?',
+      'What is AOI (Automated Optical Inspection)?',
+      'What is X-ray inspection used for on PCBs?',
+    ]},
+  ]
+},
+{
+  id:'embedded-systems',name:'Embedded Systems',icon:'🖥️',color:'#84CC16',
+  desc:'MCU, I2C/SPI/UART/CAN, RTOS, C, drivers, debugging',
+  sections:[
+    {name:'Microcontrollers',q:[
+      'What is the difference between a microcontroller and a microprocessor?',
+      'What is Harvard architecture vs. von Neumann architecture?',
+      'What types of memory are in a typical MCU (flash, SRAM, EEPROM)?',
+      'What is a bootloader? What does it do?',
+      'What is a memory map?',
+      'What is memory-mapped I/O vs. port-mapped I/O?',
+      'What is DMA (Direct Memory Access)? When is it used?',
+      'What is a watchdog timer? How does it work?',
+      'What is a clock source in an MCU (crystal oscillator, PLL, RC)?',
+      'What does it mean to program on bare metal? Why are there no automatic exceptions/safety nets?',
+      'What is context switching? How is it performed at the hardware level?',
+      'What is a critical section? How do you protect one?',
+      'What is an atomic operation? How do you implement one?',
+      'What are race conditions? Give an embedded example.',
+    ]},
+    {name:'I2C',q:[
+      'How does I2C work at a high level?',
+      'What are the two wires in I2C and what are their logic conventions?',
+      'Why are I2C lines open-drain with pull-up resistors?',
+      'How is an I2C transaction structured (start, address, ACK, data, stop)?',
+      'What is clock stretching in I2C?',
+      'What are the I2C speed modes (standard, fast, fast-plus, high-speed)?',
+      'How do you size I2C pull-up resistors?',
+      'How is multi-master I2C arbitration handled?',
+    ]},
+    {name:'SPI',q:[
+      'How does SPI work? What are the four signals (MOSI, MISO, SCK, CS)?',
+      'What are the four SPI modes (CPOL, CPHA)? What do they define?',
+      'How do you select between multiple SPI slaves?',
+      'What is daisy-chaining in SPI?',
+      'What are the advantages of SPI over I2C? Disadvantages?',
+    ]},
+    {name:'UART',q:[
+      'How does UART work?',
+      'What is baud rate? Common values?',
+      'Describe a UART frame: start bit, data bits, parity, stop bits.',
+      'What is RS-232? How does it differ from UART TTL levels?',
+      'What is RS-485? When is it used?',
+      'How do you debug a UART that is not working?',
+    ]},
+    {name:'Other Protocols',q:[
+      'How does CAN bus work?',
+      'What is CAN non-destructive bitwise arbitration?',
+      'What is the CAN frame format (ID, DLC, data, CRC)?',
+      'What is CAN FD? How does it differ from classic CAN?',
+      'What are the main USB versions and their speeds?',
+      'What is USB enumeration?',
+      'What is I3C? How does it improve on I2C?',
+    ]},
+    {name:'GPIO & Peripherals',q:[
+      'What are GPIO modes (input, output, alternate function, analog)?',
+      'What is the difference between push-pull and open-drain output?',
+      'When would you use open-drain output?',
+      'What is an ADC? What is resolution? Sampling rate?',
+      'What is the Nyquist theorem? What is aliasing?',
+      'What is an anti-aliasing filter? Where is it placed?',
+      'What is a DAC? Name common DAC architectures.',
+      'How do MCU timers generate PWM?',
+      'What is input capture mode on a timer?',
+    ]},
+    {name:'Interrupts & RTOS',q:[
+      'What is an interrupt? How does it differ from polling?',
+      'What are best practices for writing an ISR?',
+      'What is interrupt priority? What is preemption?',
+      'What is interrupt latency?',
+      'What is an RTOS? How does it differ from bare-metal?',
+      'What is a task in an RTOS and what states can it be in?',
+      'What are common scheduling algorithms (preemptive, round-robin, priority)?',
+      'What is a mutex? A binary semaphore? A counting semaphore?',
+      'What is the key difference between a mutex and a semaphore?',
+      'What is a deadlock? How do you prevent it?',
+      'What is priority inversion? How is it solved?',
+      'What is a message queue in an RTOS?',
+      'What is FreeRTOS?',
+      'What is Rate Monotonic Scheduling (RMS)? What is the utilization bound?',
+      'What is Earliest Deadline First (EDF) scheduling?',
+      'What is the producer-consumer problem? Describe a solution.',
+      'What are the four necessary conditions for deadlock (Coffman conditions)?',
+    ]},
+    {name:'Embedded C/C++',q:[
+      'What does the volatile keyword do in C? Why is it critical in embedded systems?',
+      'What are the different uses of static in C?',
+      'What is the difference between const uint32_t *p and uint32_t * const p?',
+      'What are the risks of using malloc in embedded systems?',
+      'What is endianness? How do you detect it programmatically?',
+      'What is a union? How can it access individual bytes of a 32-bit word?',
+      'What are bitfields in C? Show an example use case.',
+      'What is a function pointer? How is it used for callbacks in embedded systems?',
+      'How do you implement a circular (ring) buffer in C?',
+      'What causes a stack overflow in embedded systems?',
+    ]},
+    {name:'Debugging',q:[
+      'What is JTAG? What can it do on an embedded system?',
+      'What is SWD (Serial Wire Debug)?',
+      'What is a breakpoint vs. a watchpoint?',
+      'How do you debug a hard fault on an ARM Cortex-M?',
+      'How do you debug a system that crashes intermittently?',
+      'What is a logic analyzer? When do you use it over an oscilloscope?',
+      'What is a protocol analyzer?',
+    ]},
+  ]
+},
+{
+  id:'digital-vlsi',name:'Digital Design & VLSI',icon:'🧮',color:'#7C3AED',
+  desc:'RTL, Verilog, FSMs, STA, CDC, DFT, verification',
+  sections:[
+    {name:'Digital Fundamentals',q:[
+      'State De Morgan\'s Laws.',
+      'What is a Karnaugh map? How is it used for logic minimization?',
+      'How do you implement any Boolean function using only MUXes?',
+      'What is a decoder? An encoder? A priority encoder?',
+      'Design a full adder. What are its inputs and outputs?',
+      'What is tristate logic? When is it used?',
+    ]},
+    {name:'Sequential Logic',q:[
+      'What is the difference between a latch and a D flip-flop?',
+      'What is setup time? Hold time? What happens if either is violated?',
+      'What is propagation delay Tpd? Clock-to-Q delay Tcq?',
+      'What is metastability? How does it arise?',
+      'How many synchronizer flip-flops are needed and why?',
+      'What is a shift register? What are common uses?',
+      'Design a 4-bit synchronous counter.',
+      'What is a LFSR (Linear Feedback Shift Register)? What is it used for?',
+      'What is Gray code? Why is it used in counters that cross clock domains?',
+    ]},
+    {name:'FSMs',q:[
+      'What is the difference between a Mealy and Moore FSM?',
+      'What are the steps to design an FSM?',
+      'Compare binary, one-hot, and Gray state encoding. When is each preferred?',
+      'Design an FSM to detect the sequence "1011" in a serial bit stream.',
+      'What is a safe FSM? How do you handle illegal states?',
+      'What is the difference between synchronous and asynchronous reset in an FSM?',
+    ]},
+    {name:'Verilog / RTL',q:[
+      'What is RTL (Register Transfer Level)?',
+      'What is the difference between wire and reg in Verilog?',
+      'What is the difference between blocking (=) and non-blocking (<=) assignments?',
+      'When should you use blocking vs. non-blocking?',
+      'What is the purpose of always @(*) vs. always @(posedge clk)?',
+      'Write Verilog for a D flip-flop with synchronous reset.',
+      'Write Verilog for a D flip-flop with asynchronous reset.',
+      'Write Verilog for a 4-to-1 MUX.',
+      'Write Verilog for a 4-bit synchronous up-counter.',
+      'What is a latch inference? How do you avoid unintentional latches?',
+      'What is a generate block in Verilog? Give an example.',
+      'What is the difference between Verilog and SystemVerilog?',
+      'What are SystemVerilog interfaces?',
+    ]},
+    {name:'Synthesis & Timing (STA)',q:[
+      'What is synthesis in digital design?',
+      'What is STA (Static Timing Analysis)?',
+      'What is a critical path?',
+      'What is timing slack? Positive vs. negative slack?',
+      'How do you fix a setup time violation? A hold time violation?',
+      'What is retiming? How does it fix timing violations?',
+      'How does pipelining improve the maximum clock frequency?',
+      'What is an SDC file? What does create_clock do?',
+      'What is set_input_delay and set_output_delay?',
+      'What is a false path? A multi-cycle path?',
+      'What are process corners (SS, FF, TT, SF, FS)?',
+      'What is OCV (On-Chip Variation)?',
+    ]},
+    {name:'Clock Domain Crossing (CDC)',q:[
+      'What is a clock domain crossing (CDC)?',
+      'Why is CDC a problem in digital design?',
+      'What is a synchronizer? How many flip-flops does it use?',
+      'What is MTBF (Mean Time Between Failures) for a synchronizer?',
+      'How do you safely cross a single-bit signal between clock domains?',
+      'How do you safely pass a multi-bit bus across clock domains?',
+      'What is a handshake protocol for CDC?',
+      'What is an asynchronous FIFO? How does it handle CDC?',
+      'Why use Gray-coded pointers in an asynchronous FIFO?',
+      'How do you calculate asynchronous FIFO depth for a burst scenario?',
+    ]},
+    {name:'DFT & Verification',q:[
+      'What is DFT (Design for Test) in VLSI?',
+      'What is scan insertion? How does a scan chain work?',
+      'What is ATPG (Automatic Test Pattern Generation)?',
+      'What is the stuck-at fault model?',
+      'What is fault coverage? What is a good target?',
+      'What is BIST (Built-In Self-Test)?',
+      'What is JTAG / IEEE 1149.1 boundary scan?',
+      'What is functional verification?',
+      'What is coverage-driven verification (CDV)?',
+      'What is constrained random verification?',
+      'What is UVM? What are its main components?',
+      'What is SVA (SystemVerilog Assertions)?',
+      'What are immediate vs. concurrent assertions?',
+      'What is the difference between rand and randc in SystemVerilog?',
+    ]},
+    {name:'FPGA Design',q:[
+      'What is an FPGA? How is it different from an ASIC and a general-purpose CPU?',
+      'Why would you use an FPGA over an ASIC? Over a CPU?',
+      'What are the main components of an FPGA (LUTs, FFs, BRAM, DSPs, transceivers)?',
+      'How does an FPGA implement a logic function? How do LUTs work?',
+      'What is a LUT (Look-Up Table)? How many inputs does a typical LUT have?',
+      'What are the different ways to store memory on an FPGA (FFs, LUTs, BRAM, URAM)?',
+      'What are the steps to go from RTL to FPGA bitstream?',
+      'What is synthesis for FPGA? How does it differ from ASIC synthesis?',
+      'What is place-and-route on an FPGA?',
+      'What is timing closure on an FPGA?',
+      'What is a CLB (Configurable Logic Block)? How does it relate to LUTs and FFs?',
+      'What is a high-speed gigabit transceiver on an FPGA? When is it used?',
+      'How does an FPGA interact with a host CPU (PCIe, DMA, AXI)?',
+      'What are Bus Functional Models (BFMs) and how do they help with FPGA verification?',
+      'What is the difference between simulation and emulation on an FPGA?',
+      'What is partial reconfiguration on an FPGA?',
+      'What are common FPGA tool flows (Vivado, Quartus, etc.)?',
+      'Design a traffic light controller FSM in Verilog (N-S and E-W, Red/Yellow/Green).',
+      'Design a vending machine FSM: accepts nickels/dimes/quarters, dispenses $1 item, gives change.',
+    ]},
+  ]
+},
+{
+  id:'computer-architecture',name:'Computer Architecture',icon:'💻',color:'#0EA5E9',
+  desc:'Pipeline, cache, memory hierarchy, SoC, GPU, power',
+  sections:[
+    {name:'Pipeline & Hazards',q:[
+      'What is pipelining in a processor? Name typical pipeline stages.',
+      'What is a data hazard? Give an example.',
+      'What is a control hazard? What causes it?',
+      'What is a structural hazard?',
+      'What is data forwarding (bypassing)?',
+      'What is branch prediction? Compare static and dynamic strategies.',
+      'What is out-of-order execution?',
+      'What is the von Neumann bottleneck?',
+      'What is the difference between RISC and CISC architecture? Give examples.',
+      'What is prefetching? Why is accessing main memory slow?',
+      'What is a Turing Machine? How does it relate to modern CPU design?',
+    ]},
+    {name:'Cache & Memory',q:[
+      'What is a cache? Why is it used?',
+      'What are L1, L2, L3 caches? Typical sizes and latencies?',
+      'What are the three C\'s of cache misses (cold, conflict, capacity)?',
+      'What is a cache line?',
+      'Compare direct-mapped, set-associative, and fully-associative cache.',
+      'What is write-through vs. write-back cache?',
+      'What is cache coherency? Why is it a problem in multicore systems?',
+      'What is the MESI protocol?',
+      'What is virtual memory?',
+      'What is a TLB (Translation Lookaside Buffer)?',
+      'What is an MMU (Memory Management Unit)?',
+      'What is the difference between DRAM and SRAM?',
+    ]},
+    {name:'SoC & GPU',q:[
+      'What is a SoC? What components does it typically contain?',
+      'What are common bus protocols in a SoC (AXI, AHB, APB)? What are their differences?',
+      'What is a GPU? How does its architecture differ from a CPU?',
+      'What is SIMD?',
+    ]},
+    {name:'Power & Performance',q:[
+      'How does clock frequency affect power, performance, and thermals?',
+      'How does supply voltage affect power? (P ∝ V²)',
+      'What is dynamic power vs. static (leakage) power?',
+      'What is clock gating? How does it reduce power?',
+      'What is power gating? How does it differ from clock gating?',
+      'What is DVFS (Dynamic Voltage and Frequency Scaling)?',
+      'What is PPA (Power, Performance, Area)? Describe the tradeoffs.',
+      'What is thermal throttling?',
+    ]},
+  ]
+},
+{
+  id:'signals-transmission',name:'Signals & Transmission Lines',icon:'📶',color:'#EC4899',
+  desc:'TL theory, differential signaling, reflections, termination',
+  sections:[
+    {name:'Transmission Line Theory',q:[
+      'What is a transmission line? When must a PCB trace be treated as one?',
+      'What is the rule of thumb for when a trace becomes a transmission line?',
+      'What is characteristic impedance Z0? How is it determined?',
+      'What causes reflections on a transmission line?',
+      'Derive the reflection coefficient Γ.',
+      'What happens at an open-circuit termination? Short-circuit termination?',
+      'What is a matched termination? Why does it eliminate reflections?',
+      'Describe series termination and where to place it.',
+      'Describe parallel (end) termination.',
+      'What is TDR (Time Domain Reflectometry)? How does it work?',
+    ]},
+    {name:'Differential Signaling',q:[
+      'What is differential signaling? What are the advantages over single-ended?',
+      'Name common differential standards (LVDS, HDMI, USB, PCIe).',
+      'What is common-mode rejection?',
+      'What are the PCB routing rules for differential pairs?',
+      'What is skew in a differential pair? What causes it?',
+      'How does differential impedance relate to single-ended impedance?',
+    ]},
+    {name:'Signal Integrity',q:[
+      'What is an eye diagram? What measurements does it provide?',
+      'What is jitter? Name the main types (deterministic, random).',
+      'What is inter-symbol interference (ISI)?',
+      'What is crosstalk? NEXT vs. FEXT?',
+      'What causes ground bounce?',
+      'What is pre-emphasis / de-emphasis? What is equalization?',
+      'What frequencies are in a square wave with rise time Tr? (BW ≈ 0.35/Tr)',
+    ]},
+  ]
+},
+{
+  id:'measurement',name:'Measurement & Debug',icon:'🔭',color:'#D97706',
+  desc:'Oscilloscopes, DMMs, VNAs, debug methodology',
+  sections:[
+    {name:'Oscilloscopes',q:[
+      'How does an oscilloscope work?',
+      'What is oscilloscope bandwidth? What bandwidth do you need to accurately measure a signal?',
+      'What is sample rate? What is the Nyquist requirement relative to bandwidth?',
+      'What is a trigger and why is it needed?',
+      'What are common trigger types (edge, pulse, protocol)?',
+      'What is a differential probe? When do you need one?',
+      'What is an active probe? Why use it over a passive probe?',
+      'What does 10x attenuation do on a probe? What is the tradeoff?',
+      'What is probe loading? What is the input impedance of a 10x passive probe?',
+      'What is a current probe? How does it work?',
+      'How do you measure power supply ripple with a scope?',
+    ]},
+    {name:'DMMs & Other Equipment',q:[
+      'What is a DMM? What quantities can it measure?',
+      'When should you use a DMM vs. an oscilloscope?',
+      'What is a VNA (Vector Network Analyzer)? What does it measure?',
+      'What is S11 (return loss)? S21 (insertion loss)?',
+      'What is a spectrum analyzer? When would you use it?',
+      'What is an LCR meter?',
+    ]},
+    {name:'Debug Methodology',q:[
+      'What is your general approach to debugging a circuit that doesn\'t work?',
+      'What is the divide-and-conquer method in hardware debugging?',
+      'How do you debug a power supply with unexpected output voltage?',
+      'How do you debug an I2C or SPI bus that is not communicating?',
+      'How do you debug a PCB bring-up with no MCU output?',
+      'How do you ensure automated tests run reliably for weeks continuously?',
+    ]},
+  ]
+},
+{
+  id:'non-technical',name:'Non-Technical & Behavioral',icon:'💼',color:'#64748B',
+  desc:'Behavioral questions, system design, intro',
+  sections:[
+    {name:'Intro & Goals',q:[
+      'Tell me about yourself and your background in hardware engineering.',
+      'What are your career goals in hardware engineering?',
+      'Why are you interested in this position and company?',
+      'Where do you see yourself in 5 years?',
+      'Why do you want to work at this company specifically?',
+    ]},
+    {name:'Behavioral',q:[
+      'What is your greatest engineering strength?',
+      'What is your greatest weakness? How are you working on it?',
+      'Tell me about a challenging technical problem you solved.',
+      'Tell me about a time you disagreed with a teammate. How did you resolve it?',
+      'How do you prioritize tasks when you have multiple competing deadlines?',
+      'Tell me about a project you are most proud of.',
+      'Describe a time you made a mistake. How did you handle it?',
+      'Tell me about a time you had to learn something quickly.',
+      'Describe a time you worked in a cross-functional team.',
+    ]},
+    {name:'Technical Behavioral',q:[
+      'Walk me through a project where you designed or debugged a circuit.',
+      'Tell me about a time you debugged something that took longer than expected.',
+      'What is your approach to reading a new datasheet?',
+      'How do you validate that a design meets its requirements?',
+      'Given a new MCU you\'ve never used, how would you get started?',
+      'What is a datasheet? How do you find a specific spec in one?',
+    ]},
+    {name:'System Design',q:[
+      'What components does a smartphone contain at a high level?',
+      'Design a battery-powered IoT sensor node. What components do you need?',
+      'What is redundancy in a system? How do you design for it?',
+      'What are design constraints in consumer electronics vs. automotive vs. aerospace?',
+      'How would you design a system to be testable from day one?',
+      'Design a system to achieve variable LED brightness.',
+      'Design a system to adjust display brightness based on ambient light.',
+      'What is a bring-up plan for a new PCB?',
+    ]},
+  ]
+},
+];
+
+// ── Card index ──
+const allCards=[];
+for(const t of TOPICS)for(let si=0;si<t.sections.length;si++)for(let qi=0;qi<t.sections[si].q.length;qi++)
+  allCards.push({topicId:t.id,si,sectionName:t.sections[si].name,question:t.sections[si].q[qi]});
+
+// ── Home ──
+function renderHome(){
+  document.getElementById('view-home').style.display='block';
+  document.getElementById('view-study').style.display='none';
+  document.getElementById('g-total').textContent=allCards.length+' cards';
+  const grid=document.getElementById('topic-grid');grid.innerHTML='';
+  for(const t of TOPICS){
+    const tc=allCards.filter(c=>c.topicId===t.id);
+    const card=document.createElement('div');card.className='topic-card';card.onclick=()=>startStudy(t.id);
+    card.innerHTML=`<div class="tc-name">${t.name}</div>
+      <div class="tc-secs">${t.sections.map(s=>s.name).join(' · ')}</div>
+      <div class="tc-count">${tc.length} cards</div>`;
+    grid.appendChild(card);
+  }
+}
+
+// ── Study ──
+let studyTopic=null,currentSection='__all__',deck=[],idx=0;
+
+function startStudy(topicId){
+  studyTopic=TOPICS.find(t=>t.id===topicId);
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-study').style.display='flex';
+  document.getElementById('study-topic-label').textContent=studyTopic.name;
+  renderSecBar();startSection('__all__');
+}
+function showHome(){renderHome();}
+function renderSecBar(){
+  const bar=document.getElementById('sections-bar');bar.innerHTML='';
+  const all=document.createElement('button');all.className='sec-chip'+(currentSection==='__all__'?' active':'');
+  all.textContent='all';all.onclick=()=>startSection('__all__');bar.appendChild(all);
+  for(let si=0;si<studyTopic.sections.length;si++){
+    const btn=document.createElement('button');btn.className='sec-chip'+(currentSection===String(si)?' active':'');
+    btn.textContent=studyTopic.sections[si].name;btn.onclick=(i=>()=>startSection(String(i)))(si);bar.appendChild(btn);
+  }
+}
+function startSection(sec){
+  currentSection=sec;renderSecBar();
+  let pool=allCards.filter(c=>c.topicId===studyTopic.id);
+  if(sec!=='__all__')pool=pool.filter(c=>c.si===Number(sec));
+  deck=pool;idx=0;renderCard();
+}
+function renderCard(){
+  const empty=document.getElementById('empty-state');
+  const cardEl=document.getElementById('card');
+  const navEl=document.getElementById('nav-btns');
+  const hintEl=document.getElementById('kbd-hint');
+  if(!deck.length){cardEl.style.display='none';navEl.style.display='none';hintEl.style.display='none';empty.style.display='block';return;}
+  cardEl.style.display='flex';navEl.style.display='flex';hintEl.style.display='block';empty.style.display='none';
+  document.getElementById('prog-fill').style.width=((idx+1)/deck.length*100)+'%';
+  document.getElementById('study-counter').textContent=`${idx+1} / ${deck.length}`;
+  document.getElementById('card-sec').textContent=deck[idx].sectionName;
+  document.getElementById('card-q').textContent=deck[idx].question;
+}
+function next(){if(deck.length){idx=(idx+1)%deck.length;renderCard();}}
+function prev(){if(deck.length){idx=(idx-1+deck.length)%deck.length;renderCard();}}
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(document.getElementById('view-study').style.display==='none')return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'){e.preventDefault();prev();}
+});
+
+renderHome();
+</script>
+</body>
+</html>
