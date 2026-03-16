@@ -48,9 +48,9 @@ Tried to cover most commonly asked questions across a broad general range of ele
 
 I mainly took questions from:
 
-- **Monty Choy's Hardware Engineering Interview List** — 1,000+ questions drawn from 150+ real interviews at Apple, NVIDIA, Google, Microsoft, SpaceX, Tesla, Qualcomm, and others. Heavy coverage of analog, power electronics, PCB design, and embedded systems.
-- **[mikinty/Hardware-Engineer-Interview-Questions](https://github.com/mikinty/Hardware-Engineer-Interview-Questions)** — community-maintained repo covering general EE, analog, digital, computer architecture, embedded, and FPGA design.
-- **Domain knowledge** — the VLSI/RTL section (Verilog, STA, CDC, DFT, UVM, FPGA) and additional embedded/C questions were written from textbook questions I found to fill some gaps 
+- **Monty Choy's Hardware Engineering Interview List**: over 1,000+ questions drawn from 150+ real interviews at Apple, NVIDIA, Google, Microsoft, SpaceX, Tesla, Qualcomm, and others. Heavy coverage of analog, power electronics, PCB design, and embedded systems.
+- **[mikinty/Hardware-Engineer-Interview-Questions](https://github.com/mikinty/Hardware-Engineer-Interview-Questions)**: community-maintained repo covering general EE, analog, digital, computer architecture, embedded, and FPGA design.
+- **Domain knowledge** : the VLSI/RTL section (Verilog, STA, CDC, DFT, UVM, FPGA) and additional embedded/C questions were written from textbook questions I found to fill some gaps 
 
 ---
 
